@@ -15,4 +15,11 @@ public interface DeviceService {
      */
     DeviceResponseDto createDevice(DeviceCreateRequestDto createDto);
 
+    /**
+     * Get device by id.
+     * @param id - Device ID.
+     * @return - DTO object with the device information.
+     */
+    DeviceResponseDto getDeviceById(Long id);
+
 }

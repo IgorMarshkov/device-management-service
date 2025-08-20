@@ -4,6 +4,7 @@ import com.interview.dto.DeviceCreateRequestDto;
 import com.interview.dto.DeviceResponseDto;
 import com.interview.entity.DeviceEntity;
 import com.interview.enums.DeviceState;
+import com.interview.exception.DeviceNotFoundException;
 import com.interview.mapper.DeviceMapper;
 import com.interview.repository.DeviceRepository;
 import com.interview.service.DeviceService;
@@ -32,6 +33,13 @@ public class DeviceServiceImpl implements DeviceService {
         newEntity.setState(DeviceState.AVAILABLE);
         DeviceEntity savedDevice = deviceRepository.save(newEntity);
         return deviceMapper.toResponseDto(savedDevice);
+    }
+
+    @Override
+    public DeviceResponseDto getDeviceById(Long id) {
+        DeviceEntity entity = deviceRepository.findById(id)
+                .orElseThrow(() -> new DeviceNotFoundException(id));
+        return deviceMapper.toResponseDto(entity);
     }
 
 }
