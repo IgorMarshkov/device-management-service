@@ -22,6 +22,17 @@ public class DeviceResponseDto {
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime creationTime;
 
+    public DeviceResponseDto() {
+    }
+
+    public DeviceResponseDto(Long id, String name, String brand, DeviceState state, LocalDateTime creationTime) {
+        this.id = id;
+        this.name = name;
+        this.brand = brand;
+        this.state = state;
+        this.creationTime = creationTime;
+    }
+
     public Long getId() {
         return id;
     }

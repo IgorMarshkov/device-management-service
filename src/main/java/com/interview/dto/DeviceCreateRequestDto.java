@@ -14,6 +14,14 @@ public class DeviceCreateRequestDto {
     @Schema(description = "Device brand name", maxLength = 255, requiredMode = Schema.RequiredMode.REQUIRED)
     private String brand;
 
+    public DeviceCreateRequestDto() {
+    }
+
+    public DeviceCreateRequestDto(String name, String brand) {
+        this.name = name;
+        this.brand = brand;
+    }
+
     public String getName() {
         return name;
     }

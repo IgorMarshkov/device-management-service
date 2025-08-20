@@ -7,6 +7,7 @@ import com.interview.dto.DeviceResponseDto;
 import com.interview.dto.DeviceUpdateRequestDto;
 import com.interview.dto.ErrorResponseDto;
 import com.interview.enums.DeviceState;
+import com.interview.service.DeviceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -35,6 +36,12 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Device Management", description = "APIs for managing device resources")
 public class DeviceController {
 
+    private final DeviceService deviceService;
+
+    public DeviceController(DeviceService deviceService) {
+        this.deviceService = deviceService;
+    }
+
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Create a new device", description = "Creates a new device resource")
     @ApiResponses(value = {
@@ -44,8 +51,8 @@ public class DeviceController {
                     content = {@Content(schema = @Schema(implementation = ErrorResponseDto.class))})
     })
     public ResponseEntity<DeviceResponseDto> createDevice(@Valid @RequestBody DeviceCreateRequestDto createDto) {
-        // TODO: Implement
-        return new ResponseEntity<>(new DeviceResponseDto(), HttpStatus.CREATED);
+        DeviceResponseDto response = deviceService.createDevice(createDto);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @PutMapping(path ="/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)

@@ -41,6 +41,20 @@ public class DeviceEntity {
     @Column(name = "creation_time", nullable = false, updatable = false)
     private LocalDateTime creationTime;
 
+    public DeviceEntity() {
+
+    }
+
+    public DeviceEntity(String name, String brand) {
+        this.name = name;
+        this.brand = brand;
+    }
+
+    public DeviceEntity(String name, String brand, DeviceState state) {
+        this(name, brand);
+        this.state = state;
+    }
+
     public Long getId() {
         return id;
     }
