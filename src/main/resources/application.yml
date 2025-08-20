@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: device-management-service
+  docker:
+    compose:
+      enabled: false
+  datasource:
+    url: jdbc:postgresql://localhost:5432/devices_db
+    username: devices_user
+    password: devices_pass
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    open-in-view: false
+  flyway:
+    enabled: false
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
