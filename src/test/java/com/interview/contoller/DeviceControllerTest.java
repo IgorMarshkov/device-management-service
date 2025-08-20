@@ -7,6 +7,7 @@ import com.interview.dto.DeviceCreateRequestDto;
 import com.interview.dto.DeviceResponseDto;
 import com.interview.enums.DeviceState;
 import com.interview.exception.DeviceNotFoundException;
+import com.interview.exception.DeviceValidationException;
 import com.interview.service.DeviceService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -17,7 +18,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -82,6 +85,21 @@ class DeviceControllerTest {
 
         mockMvc.perform(get("/api/v1/devices/999"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteDevice_InactiveDevice_ReturnsSuccess() throws Exception {
+        mockMvc.perform(delete("/api/v1/devices/1"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void deleteDevice_InUseDevice_ReturnsBadRequest() throws Exception {
+        doThrow(new DeviceValidationException("Cannot delete device that is currently in use"))
+                .when(deviceService).deleteDevice(1L);
+
+        mockMvc.perform(delete("/api/v1/devices/1"))
+                .andExpect(status().isBadRequest());
     }
 
 }

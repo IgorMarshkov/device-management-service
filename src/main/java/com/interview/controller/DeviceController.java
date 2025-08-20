@@ -110,7 +110,7 @@ public class DeviceController {
     })
     public ResponseEntity<Void> deleteDevice(
             @Parameter(description = "Device ID") @PathVariable Long id) {
-        // TODO: Implement
+        deviceService.deleteDevice(id);
         return ResponseEntity.noContent().build();
     }
 

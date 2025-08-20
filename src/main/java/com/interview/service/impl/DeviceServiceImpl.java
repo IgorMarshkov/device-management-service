@@ -5,6 +5,7 @@ import com.interview.dto.DeviceResponseDto;
 import com.interview.entity.DeviceEntity;
 import com.interview.enums.DeviceState;
 import com.interview.exception.DeviceNotFoundException;
+import com.interview.exception.DeviceValidationException;
 import com.interview.mapper.DeviceMapper;
 import com.interview.repository.DeviceRepository;
 import com.interview.service.DeviceService;
@@ -40,6 +41,19 @@ public class DeviceServiceImpl implements DeviceService {
         DeviceEntity entity = deviceRepository.findById(id)
                 .orElseThrow(() -> new DeviceNotFoundException(id));
         return deviceMapper.toResponseDto(entity);
+    }
+
+    @Override
+    @Transactional
+    public void deleteDevice(Long id) {
+        DeviceEntity entity = deviceRepository.findById(id)
+                .orElseThrow(() -> new DeviceNotFoundException(id));
+
+        if (entity.getState() == DeviceState.IN_USE) {
+            throw new DeviceValidationException("Cannot delete device that is currently in use");
+        }
+
+        deviceRepository.deleteById(id);
     }
 
 }

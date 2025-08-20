@@ -22,4 +22,10 @@ public interface DeviceService {
      */
     DeviceResponseDto getDeviceById(Long id);
 
+    /**
+     * Delete a device by id. The device must not be in use.
+     * @param id - Device ID.
+     */
+    void deleteDevice(Long id);
+
 }

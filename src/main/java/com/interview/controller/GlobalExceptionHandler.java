@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import com.interview.dto.ErrorResponseDto;
 import com.interview.exception.DeviceNotFoundException;
+import com.interview.exception.DeviceValidationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -52,6 +53,16 @@ public class GlobalExceptionHandler {
                 ex.getMessage()
         );
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(DeviceValidationException.class)
+    public ResponseEntity<ErrorResponseDto> handleDeviceValidation(DeviceValidationException ex) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation Error",
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
 }
