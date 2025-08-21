@@ -68,8 +68,8 @@ public class DeviceController {
     public ResponseEntity<DeviceResponseDto> updateDevice(
             @Parameter(description = "Device ID") @PathVariable Long id,
             @RequestBody DeviceUpdateRequestDto updateDto) {
-        // TODO: Implement
-        return ResponseEntity.ok(new DeviceResponseDto());
+        DeviceResponseDto response = deviceService.updateDevice(id, updateDto);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")

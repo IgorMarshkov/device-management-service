@@ -2,6 +2,7 @@ package com.interview.service.impl;
 
 import com.interview.dto.DeviceCreateRequestDto;
 import com.interview.dto.DeviceResponseDto;
+import com.interview.dto.DeviceUpdateRequestDto;
 import com.interview.entity.DeviceEntity;
 import com.interview.enums.DeviceState;
 import com.interview.exception.DeviceNotFoundException;
@@ -54,6 +55,30 @@ public class DeviceServiceImpl implements DeviceService {
         }
 
         deviceRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public DeviceResponseDto updateDevice(Long id, DeviceUpdateRequestDto updateDto) {
+        DeviceEntity deviceEntity = deviceRepository.findById(id)
+                .orElseThrow(() -> new DeviceNotFoundException(id));
+
+        validateUpdate(deviceEntity, updateDto);
+        deviceMapper.updateEntity(deviceEntity, updateDto);
+
+        DeviceEntity updatedDeviceEntity = deviceRepository.save(deviceEntity);
+        return deviceMapper.toResponseDto(updatedDeviceEntity);
+    }
+
+    private void validateUpdate(DeviceEntity deviceEntity, DeviceUpdateRequestDto updateDto) {
+        if (deviceEntity.getState() == DeviceState.IN_USE) {
+            if (updateDto.getName() != null && !updateDto.getName().equals(deviceEntity.getName())) {
+                throw new DeviceValidationException("Cannot update name of device that is in use");
+            }
+            if (updateDto.getBrand() != null && !updateDto.getBrand().equals(deviceEntity.getBrand())) {
+                throw new DeviceValidationException("Cannot update brand of device that is in use");
+            }
+        }
     }
 
 }

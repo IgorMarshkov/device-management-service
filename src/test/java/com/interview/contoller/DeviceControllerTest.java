@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.interview.controller.DeviceController;
 import com.interview.dto.DeviceCreateRequestDto;
 import com.interview.dto.DeviceResponseDto;
+import com.interview.dto.DeviceUpdateRequestDto;
 import com.interview.enums.DeviceState;
 import com.interview.exception.DeviceNotFoundException;
 import com.interview.exception.DeviceValidationException;
@@ -23,6 +24,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -100,6 +102,36 @@ class DeviceControllerTest {
 
         mockMvc.perform(delete("/api/v1/devices/1"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void updateDevice_InUseDevice_ReturnsBadRequest() throws Exception {
+        DeviceUpdateRequestDto updateDto = new DeviceUpdateRequestDto("Pixel", null, DeviceState.AVAILABLE);
+
+        doThrow(new DeviceValidationException("Cannot update name of device that is in use"))
+                .when(deviceService).updateDevice(1L, updateDto);
+
+        mockMvc.perform(put("/api/v1/devices/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateDto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void updateDevice_ValidInput_ReturnsUpdatedDevice() throws Exception {
+        DeviceResponseDto responseDto = new DeviceResponseDto(1L, "iPhone 15", "Apple", DeviceState.AVAILABLE, LocalDateTime.now());
+        DeviceUpdateRequestDto updateDto = new DeviceUpdateRequestDto("iPhone 15", "Apple", DeviceState.AVAILABLE);
+
+        when(deviceService.updateDevice(1L, updateDto)).thenReturn(responseDto);
+
+        mockMvc.perform(put("/api/v1/devices/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.name").value("iPhone 15"))
+                .andExpect(jsonPath("$.brand").value("Apple"))
+                .andExpect(jsonPath("$.state").value("AVAILABLE"));
     }
 
 }

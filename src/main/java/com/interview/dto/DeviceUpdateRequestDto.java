@@ -1,5 +1,7 @@
 package com.interview.dto;
 
+import java.util.Objects;
+
 import com.interview.enums.DeviceState;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -12,6 +14,15 @@ public class DeviceUpdateRequestDto {
     private String brand;
     @Schema(description = "New device state", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private DeviceState state;
+
+    public DeviceUpdateRequestDto() {
+    }
+
+    public DeviceUpdateRequestDto(String name, String brand, DeviceState state) {
+        this.name = name;
+        this.brand = brand;
+        this.state = state;
+    }
 
     public String getName() {
         return name;
@@ -35,6 +46,20 @@ public class DeviceUpdateRequestDto {
 
     public void setState(DeviceState state) {
         this.state = state;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof DeviceUpdateRequestDto that)) {
+            return false;
+        }
+        return Objects.equals(getName(), that.getName()) && Objects.equals(getBrand(),
+                that.getBrand()) && getState() == that.getState();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getName(), getBrand(), getState());
     }
 
 }

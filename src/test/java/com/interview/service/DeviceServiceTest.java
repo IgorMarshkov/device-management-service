@@ -5,17 +5,20 @@ import java.util.Optional;
 
 import com.interview.dto.DeviceCreateRequestDto;
 import com.interview.dto.DeviceResponseDto;
+import com.interview.dto.DeviceUpdateRequestDto;
 import com.interview.entity.DeviceEntity;
 import com.interview.enums.DeviceState;
 import com.interview.exception.DeviceNotFoundException;
 import com.interview.exception.DeviceValidationException;
 import com.interview.mapper.DeviceMapper;
+import com.interview.mapper.DeviceMapperImpl;
 import com.interview.repository.DeviceRepository;
 import com.interview.service.impl.DeviceServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -36,8 +39,8 @@ class DeviceServiceTest {
     @Mock
     private DeviceRepository deviceRepository;
 
-    @Mock
-    private DeviceMapper deviceMapper;
+    @Spy
+    private DeviceMapper deviceMapper = new DeviceMapperImpl();
 
     private DeviceService deviceService;
 
@@ -104,7 +107,7 @@ class DeviceServiceTest {
     @Test
     void deleteDevice_InUseDevice_ThrowsException() {
         // given
-        DeviceEntity device = new DeviceEntity("iPhone 15", "Apple", DeviceState.IN_USE);
+        DeviceEntity device = new DeviceEntity(DEVICE_NAME, BRAND, DeviceState.IN_USE);
         device.setId(1L);
 
         when(deviceRepository.findById(1L)).thenReturn(Optional.of(device));
@@ -117,7 +120,7 @@ class DeviceServiceTest {
     @Test
     void deleteDevice_AvailableDevice_DeletesSuccessfully() {
         // given
-        DeviceEntity device = new DeviceEntity("iPhone 15", "Apple", DeviceState.AVAILABLE);
+        DeviceEntity device = new DeviceEntity(DEVICE_NAME, BRAND, DeviceState.AVAILABLE);
         device.setId(1L);
 
         when(deviceRepository.findById(1L)).thenReturn(Optional.of(device));
@@ -125,6 +128,71 @@ class DeviceServiceTest {
         // when & then
         assertDoesNotThrow(() -> deviceService.deleteDevice(1L));
         verify(deviceRepository).deleteById(1L);
+    }
+
+    @Test
+    void updateDevice_InUseDeviceNameUpdate_ThrowsException() {
+        // given
+        DeviceEntity device = new DeviceEntity(DEVICE_NAME, BRAND, DeviceState.IN_USE);
+        device.setId(1L);
+        DeviceUpdateRequestDto updateDto = new DeviceUpdateRequestDto("iPhone 15 Pro", null, null);
+
+        // when
+        when(deviceRepository.findById(1L)).thenReturn(Optional.of(device));
+
+        // then
+        assertThrows(DeviceValidationException.class, () -> deviceService.updateDevice(1L, updateDto));
+    }
+
+    @Test
+    void updateDevice_DeviceNameBrandUpdate_UpdatesSuccessfully() {
+        // given
+        LocalDateTime creationTime = LocalDateTime.now();
+        DeviceEntity existingDevice = new DeviceEntity(DEVICE_NAME, BRAND, DeviceState.AVAILABLE);
+        existingDevice.setId(1L);
+        existingDevice.setCreationTime(creationTime);
+
+        String updatedDeviceName = "iPhone 15 Pro";
+        String updatedBrand = "New Apple";
+        DeviceUpdateRequestDto updateDto = new DeviceUpdateRequestDto(updatedDeviceName, updatedBrand, DeviceState.IN_USE);
+
+        DeviceEntity expectedDeviceEntry = new DeviceEntity(updatedDeviceName, updatedBrand,
+                DeviceState.IN_USE);
+        expectedDeviceEntry.setId(1L);
+        expectedDeviceEntry.setCreationTime(creationTime);
+
+        when(deviceRepository.findById(1L)).thenReturn(Optional.of(existingDevice));
+
+        // when
+        deviceService.updateDevice(1L, updateDto);
+
+        // then
+        verify(deviceRepository).save(expectedDeviceEntry);
+    }
+
+    @Test
+    void updateDevice_SkippedBrandUpdate_UpdatesSuccessfully() {
+        // given
+        LocalDateTime creationTime = LocalDateTime.now();
+        DeviceEntity existingDevice = new DeviceEntity(DEVICE_NAME, BRAND, DeviceState.AVAILABLE);
+        existingDevice.setId(1L);
+        existingDevice.setCreationTime(creationTime);
+
+        String updatedDeviceName = "iPhone 15 Pro";
+        DeviceUpdateRequestDto updateDto = new DeviceUpdateRequestDto(updatedDeviceName, null, DeviceState.IN_USE);
+
+        DeviceEntity expectedDeviceEntry = new DeviceEntity(updatedDeviceName, BRAND,
+                DeviceState.IN_USE);
+        expectedDeviceEntry.setId(1L);
+        expectedDeviceEntry.setCreationTime(creationTime);
+
+        when(deviceRepository.findById(1L)).thenReturn(Optional.of(existingDevice));
+
+        // when
+        deviceService.updateDevice(1L, updateDto);
+
+        // then
+        verify(deviceRepository).save(expectedDeviceEntry);
     }
 
 }
