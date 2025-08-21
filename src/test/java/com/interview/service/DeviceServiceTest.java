@@ -1,6 +1,7 @@
 package com.interview.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import com.interview.dto.DeviceCreateRequestDto;
@@ -20,11 +21,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -193,6 +199,105 @@ class DeviceServiceTest {
 
         // then
         verify(deviceRepository).save(expectedDeviceEntry);
+    }
+
+    @Test
+    void getDevices_WithPagination_ReturnsPagedResult() {
+        Pageable pageable = Pageable.ofSize(20);
+        List<DeviceEntity> devices = List.of(
+                new DeviceEntity("iPhone 15", "Apple", DeviceState.AVAILABLE),
+                new DeviceEntity("Galaxy S24", "Samsung", DeviceState.IN_USE)
+        );
+        Page<DeviceEntity> devicePage = new PageImpl<>(devices, pageable, 2);
+
+        List<DeviceResponseDto> expectedDtos = List.of(
+                new DeviceResponseDto(1L, "iPhone 15", "Apple", DeviceState.AVAILABLE, LocalDateTime.now()),
+                new DeviceResponseDto(2L, "Galaxy S24", "Samsung", DeviceState.IN_USE, LocalDateTime.now())
+        );
+
+        when(deviceRepository.findAll(pageable)).thenReturn(devicePage);
+        when(deviceMapper.toResponseDto(devices.get(0))).thenReturn(expectedDtos.get(0));
+        when(deviceMapper.toResponseDto(devices.get(1))).thenReturn(expectedDtos.get(1));
+
+        Page<DeviceResponseDto> result = deviceService.getDevices(null, null, pageable);
+
+        assertNotNull(result);
+        assertEquals(2, result.getContent().size());
+        assertEquals(2, result.getTotalElements());
+        assertEquals(1, result.getTotalPages());
+    }
+
+    @Test
+    void getDevices_WithBrandFilter_ReturnsFilteredResults() {
+        Pageable pageable = PageRequest.of(0, 20);
+        List<DeviceEntity> appleDevices = List.of(
+                new DeviceEntity("iPhone 15", BRAND, DeviceState.AVAILABLE),
+                new DeviceEntity("iPhone 16", BRAND, DeviceState.IN_USE)
+        );
+        Page<DeviceEntity> devicePage = new PageImpl<>(appleDevices, pageable, 2);
+
+        List<DeviceResponseDto> expectedDtos = List.of(
+                new DeviceResponseDto(1L, "iPhone 15", BRAND, DeviceState.AVAILABLE, LocalDateTime.now()),
+                new DeviceResponseDto(3L, "iPhone 16", BRAND, DeviceState.IN_USE, LocalDateTime.now())
+        );
+
+        when(deviceRepository.findByBrandIgnoreCase(BRAND, pageable)).thenReturn(devicePage);
+        when(deviceMapper.toResponseDto(appleDevices.get(0))).thenReturn(expectedDtos.get(0));
+        when(deviceMapper.toResponseDto(appleDevices.get(1))).thenReturn(expectedDtos.get(1));
+
+        Page<DeviceResponseDto> result = deviceService.getDevices(BRAND, null, pageable);
+
+        assertNotNull(result);
+        assertEquals(2, result.getContent().size());
+        assertTrue(result.getContent().stream().allMatch(d -> d.getBrand().equals(BRAND)));
+    }
+
+    @Test
+    void getDevices_WithStateFilter_ReturnsFilteredResults() {
+        Pageable pageable = PageRequest.of(0, 20);
+        List<DeviceEntity> availableDevices = List.of(
+                new DeviceEntity("iPhone 15", "Apple", DeviceState.AVAILABLE),
+                new DeviceEntity("Galaxy S24", "Samsung", DeviceState.AVAILABLE)
+        );
+        Page<DeviceEntity> devicePage = new PageImpl<>(availableDevices, pageable, 2);
+
+        List<DeviceResponseDto> expectedDtos = List.of(
+                new DeviceResponseDto(1L, "iPhone 15", "Apple", DeviceState.AVAILABLE, LocalDateTime.now()),
+                new DeviceResponseDto(2L, "Galaxy S24", "Samsung", DeviceState.AVAILABLE, LocalDateTime.now())
+        );
+
+        when(deviceRepository.findByState(DeviceState.AVAILABLE, pageable)).thenReturn(devicePage);
+        when(deviceMapper.toResponseDto(availableDevices.get(0))).thenReturn(expectedDtos.get(0));
+        when(deviceMapper.toResponseDto(availableDevices.get(1))).thenReturn(expectedDtos.get(1));
+
+        Page<DeviceResponseDto> result = deviceService.getDevices(null, DeviceState.AVAILABLE, pageable);
+
+        assertNotNull(result);
+        assertEquals(2, result.getContent().size());
+        assertTrue(result.getContent().stream().allMatch(d -> d.getState() == DeviceState.AVAILABLE));
+    }
+
+    @Test
+    void getDevices_WithBrandAndStateFilter_ReturnsFilteredResults() {
+        Pageable pageable = PageRequest.of(0, 20);
+        DeviceState state = DeviceState.AVAILABLE;
+        List<DeviceEntity> filteredDevices = List.of(
+                new DeviceEntity(DEVICE_NAME, BRAND, DeviceState.AVAILABLE)
+        );
+        Page<DeviceEntity> devicePage = new PageImpl<>(filteredDevices, pageable, 1);
+
+        DeviceResponseDto expectedDto = new DeviceResponseDto(1L, DEVICE_NAME, BRAND,
+                DeviceState.AVAILABLE, LocalDateTime.now());
+
+        when(deviceRepository.findByBrandIgnoreCaseAndState(BRAND, state, pageable)).thenReturn(devicePage);
+        when(deviceMapper.toResponseDto(filteredDevices.getFirst())).thenReturn(expectedDto);
+
+        Page<DeviceResponseDto> result = deviceService.getDevices(BRAND, state, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals(BRAND, result.getContent().getFirst().getBrand());
+        assertEquals(DeviceState.AVAILABLE, result.getContent().getFirst().getState());
     }
 
 }

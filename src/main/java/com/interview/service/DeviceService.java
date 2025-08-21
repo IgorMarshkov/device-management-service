@@ -3,6 +3,9 @@ package com.interview.service;
 import com.interview.dto.DeviceCreateRequestDto;
 import com.interview.dto.DeviceResponseDto;
 import com.interview.dto.DeviceUpdateRequestDto;
+import com.interview.enums.DeviceState;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Device service interface to handle business logic with {@link com.interview.entity.DeviceEntity}.
@@ -37,5 +40,14 @@ public interface DeviceService {
      * @return - DTO object with the updated device information.
      */
     DeviceResponseDto updateDevice(Long id, DeviceUpdateRequestDto updateDto);
+
+    /**
+     * Get devices by brand and/or state.
+     * @param brand - Brand name. Can be null.
+     * @param state - Device state. Can be null.
+     * @param pageable - Pageable object.
+     * @return - Page of device DTO objects.
+     */
+    Page<DeviceResponseDto> getDevices(String brand, DeviceState state, Pageable pageable);
 
 }

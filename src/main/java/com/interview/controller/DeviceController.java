@@ -1,7 +1,5 @@
 package com.interview.controller;
 
-import java.util.List;
-
 import com.interview.dto.DeviceCreateRequestDto;
 import com.interview.dto.DeviceResponseDto;
 import com.interview.dto.DeviceUpdateRequestDto;
@@ -17,6 +15,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -55,7 +56,7 @@ public class DeviceController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @PutMapping(path ="/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Update device", description = "Fully or partially updates an existing device")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Device updated successfully",
@@ -87,16 +88,30 @@ public class DeviceController {
     }
 
     @GetMapping
-    @Operation(summary = "Get all devices", description = "Retrieves all devices with optional filtering")
+    @Operation(summary = "Get devices", description = "Retrieves devices with optional filtering",
+            parameters = {
+                    @Parameter(
+                            name = "sort",
+                            description = "Sorting criteria in the format: property,(asc|desc)",
+                            schema = @Schema(
+                                    type = "string",
+                                    allowableValues = {"id,asc", "id,desc",
+                                            "name,asc", "name,desc",
+                                            "brand,asc", "brand,desc",
+                                            "creationTime,asc", "creationTime,desc"}
+                            )
+                    )
+            })
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Devices retrieved successfully",
                     content = {@Content(array = @ArraySchema(schema = @Schema(implementation = DeviceResponseDto.class)))})
     })
-    public ResponseEntity<List<DeviceResponseDto>> getAllDevices(
+    public ResponseEntity<Page<DeviceResponseDto>> getDevices(
             @Parameter(description = "Filter by brand") @RequestParam(required = false) String brand,
-            @Parameter(description = "Filter by state") @RequestParam(required = false) DeviceState state) {
-        // TODO: Implement
-        return ResponseEntity.ok(List.of(new DeviceResponseDto()));
+            @Parameter(description = "Filter by state") @RequestParam(required = false) DeviceState state,
+            @ParameterObject Pageable pageable) {
+        Page<DeviceResponseDto> response = deviceService.getDevices(brand, state, pageable);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")

@@ -10,6 +10,8 @@ import com.interview.exception.DeviceValidationException;
 import com.interview.mapper.DeviceMapper;
 import com.interview.repository.DeviceRepository;
 import com.interview.service.DeviceService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,6 +70,23 @@ public class DeviceServiceImpl implements DeviceService {
 
         DeviceEntity updatedDeviceEntity = deviceRepository.save(deviceEntity);
         return deviceMapper.toResponseDto(updatedDeviceEntity);
+    }
+
+    @Override
+    public Page<DeviceResponseDto> getDevices(String brand, DeviceState state, Pageable pageable) {
+        Page<DeviceEntity> devices;
+
+        if (brand != null && state != null) {
+            devices = deviceRepository.findByBrandIgnoreCaseAndState(brand, state, pageable);
+        } else if (brand != null) {
+            devices = deviceRepository.findByBrandIgnoreCase(brand, pageable);
+        } else if (state != null) {
+            devices = deviceRepository.findByState(state, pageable);
+        } else {
+            devices = deviceRepository.findAll(pageable);
+        }
+
+        return devices.map(deviceMapper::toResponseDto);
     }
 
     private void validateUpdate(DeviceEntity deviceEntity, DeviceUpdateRequestDto updateDto) {

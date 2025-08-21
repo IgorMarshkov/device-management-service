@@ -1,6 +1,7 @@
 package com.interview.contoller;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.interview.controller.DeviceController;
 import com.interview.dto.DeviceCreateRequestDto;
@@ -15,10 +16,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -132,6 +138,102 @@ class DeviceControllerTest {
                 .andExpect(jsonPath("$.name").value("iPhone 15"))
                 .andExpect(jsonPath("$.brand").value("Apple"))
                 .andExpect(jsonPath("$.state").value("AVAILABLE"));
+    }
+
+    @Test
+    void getDevices_WithPagination_ReturnsPagedResponse() throws Exception {
+        List<DeviceResponseDto> devices = List.of(
+                new DeviceResponseDto(1L, "iPhone 15", "Apple", DeviceState.AVAILABLE, LocalDateTime.now()),
+                new DeviceResponseDto(2L, "Galaxy S24", "Samsung", DeviceState.IN_USE, LocalDateTime.now())
+        );
+
+        Page<DeviceResponseDto> pagedDevices = new PageImpl<>(devices, PageRequest.of(0, 20), 2);
+
+        when(deviceService.getDevices(eq(null), eq(null), any(Pageable.class))).thenReturn(pagedDevices);
+
+        mockMvc.perform(get("/api/v1/devices")
+                        .param("page", "0")
+                        .param("size", "20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.size").value(20))
+                .andExpect(jsonPath("$.number").value(0));
+    }
+
+    @Test
+    void getDevices_WithBrandFilter_ReturnsFilteredResults() throws Exception {
+        List<DeviceResponseDto> appleDevices = List.of(
+                new DeviceResponseDto(1L, "iPhone 15", "Apple", DeviceState.AVAILABLE, LocalDateTime.now()),
+                new DeviceResponseDto(3L, "iPhone 16", "Apple", DeviceState.IN_USE, LocalDateTime.now())
+        );
+
+        Page<DeviceResponseDto> pagedDevices = new PageImpl<>(appleDevices, PageRequest.of(0, 20), 2);
+
+        when(deviceService.getDevices(eq("Apple"), eq(null), any(Pageable.class))).thenReturn(pagedDevices);
+
+        mockMvc.perform(get("/api/v1/devices")
+                        .param("brand", "Apple")
+                        .param("page", "0")
+                        .param("size", "20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[0].brand").value("Apple"))
+                .andExpect(jsonPath("$.content[1].brand").value("Apple"));
+    }
+
+    @Test
+    void getDevices_WithStateFilter_ReturnsFilteredResults() throws Exception {
+        List<DeviceResponseDto> availableDevices = List.of(
+                new DeviceResponseDto(1L, "iPhone 15", "Apple", DeviceState.AVAILABLE, LocalDateTime.now())
+        );
+
+        Page<DeviceResponseDto> pagedDevices = new PageImpl<>(availableDevices, PageRequest.of(0, 20), 1);
+
+        when(deviceService.getDevices(eq(null), eq(DeviceState.AVAILABLE), any(Pageable.class))).thenReturn(pagedDevices);
+
+        mockMvc.perform(get("/api/v1/devices")
+                        .param("state", "AVAILABLE")
+                        .param("page", "0")
+                        .param("size", "20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].state").value("AVAILABLE"));
+    }
+
+    @Test
+    void getDevices_WithSorting_ReturnsSortedResults() throws Exception {
+        List<DeviceResponseDto> devices = List.of(
+                new DeviceResponseDto(1L, "iPhone 15", "Apple", DeviceState.AVAILABLE, LocalDateTime.now())
+        );
+
+        Page<DeviceResponseDto> pagedDevices = new PageImpl<>(devices, PageRequest.of(0, 20), 1);
+
+        when(deviceService.getDevices(eq(null), eq(null), any(Pageable.class))).thenReturn(pagedDevices);
+
+        mockMvc.perform(get("/api/v1/devices")
+                        .param("page", "0")
+                        .param("size", "20")
+                        .param("sortBy", "name")
+                        .param("sortDirection", "DESC"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1));
+    }
+
+    @Test
+    void getDevices_InvalidSortDirection_UsesDefaultAscending() throws Exception {
+        List<DeviceResponseDto> devices = List.of(
+                new DeviceResponseDto(1L, "iPhone 15", "Apple", DeviceState.AVAILABLE, LocalDateTime.now())
+        );
+
+        Page<DeviceResponseDto> pagedDevices = new PageImpl<>(devices, PageRequest.of(0, 20), 1);
+
+        when(deviceService.getDevices(eq(null), eq(null), any(Pageable.class))).thenReturn(pagedDevices);
+
+        mockMvc.perform(get("/api/v1/devices")
+                        .param("sortDirection", "INVALID"))
+                .andExpect(status().isOk());
     }
 
 }
