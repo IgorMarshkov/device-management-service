@@ -9,16 +9,16 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "Device model with related information")
 public class DeviceResponseDto {
 
-    @Schema(name = "Device ID")
+    @Schema(description = "Device ID")
     private Long id;
-    @Schema(name = "Device name")
+    @Schema(description = "Device name")
     private String name;
-    @Schema(name = "Device brand name")
+    @Schema(description = "Device brand name")
     private String brand;
-    @Schema(name = "Actual device state")
+    @Schema(description = "Actual device state")
     private DeviceState state;
 
-    @Schema(name = "Device creation time")
+    @Schema(description = "Device creation time")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime creationTime;
 

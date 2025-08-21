@@ -9,16 +9,16 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "Error response model with details")
 public class ErrorResponseDto {
 
-    @Schema(name = "HTTP status code")
+    @Schema(description = "HTTP status code")
     private int status;
-    @Schema(name = "Error title")
+    @Schema(description = "Error title")
     private String error;
-    @Schema(name = "Error message")
+    @Schema(description = "Error message")
     private String message;
-    @Schema(name = "Error details")
+    @Schema(description = "Error details")
     private List<String> details;
 
-    @Schema(name = "Timestamp of the error")
+    @Schema(description = "Timestamp of the error")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime timestamp;
 

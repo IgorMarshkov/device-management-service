@@ -8,9 +8,9 @@ public class DeviceUpdateRequestDto {
 
     @Schema(description = "Device name", maxLength = 255, requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String name;
-    @Schema(name = "Device brand name", maxLength = 255, requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Schema(description = "Device brand name", maxLength = 255, requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String brand;
-    @Schema(name = "New device state", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Schema(description = "New device state", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private DeviceState state;
 
     public String getName() {
