@@ -100,12 +100,14 @@ public class DeviceEntity {
         if (!(o instanceof DeviceEntity that)) {
             return false;
         }
-        return Objects.equals(getId(), that.getId());
+        return Objects.equals(getId(), that.getId()) && Objects.equals(getName(),
+                that.getName()) && Objects.equals(getBrand(),
+                that.getBrand()) && getState() == that.getState() && Objects.equals(getCreationTime(), that.getCreationTime());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId());
+        return Objects.hash(getId(), getName(), getBrand(), getState(), getCreationTime());
     }
 
 }
