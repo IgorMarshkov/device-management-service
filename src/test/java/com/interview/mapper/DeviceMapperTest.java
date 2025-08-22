@@ -7,18 +7,21 @@ import com.interview.dto.DeviceResponseDto;
 import com.interview.dto.DeviceUpdateRequestDto;
 import com.interview.entity.DeviceEntity;
 import com.interview.enums.DeviceState;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mapstruct.factory.Mappers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@SpringBootTest
 class DeviceMapperTest {
 
-    @Autowired
     private DeviceMapper deviceMapper;
+
+    @BeforeEach
+    void setUp() {
+        deviceMapper = Mappers.getMapper(DeviceMapper.class);
+    }
 
     @Test
     void testToResponseDto() {
